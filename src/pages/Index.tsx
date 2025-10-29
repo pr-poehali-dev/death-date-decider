@@ -65,6 +65,95 @@ const Index = () => {
     setTimeout(() => playSound(293.66, 0.8, 'sine'), 300);
   };
 
+  const downloadPredictionImage = (prediction: Prediction) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = 1200;
+    canvas.height = 1200;
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0a0a0a');
+    gradient.addColorStop(1, '#1a0a0a');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(139, 0, 0, 0.3)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < canvas.width; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 80px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('MEMENTO MORI', canvas.width / 2, 150);
+
+    ctx.fillStyle = '#666666';
+    ctx.font = 'italic 36px Crimson Text, serif';
+    ctx.fillText('Твоя судьба предрешена', canvas.width / 2, 220);
+
+    ctx.strokeStyle = '#8B0000';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(100, 300, canvas.width - 200, 600);
+
+    ctx.fillStyle = 'rgba(139, 0, 0, 0.1)';
+    ctx.fillRect(100, 300, canvas.width - 200, 600);
+
+    const timeData = [
+      { value: prediction.years, label: 'ЛЕТ' },
+      { value: prediction.months, label: 'МЕСЯЦЕВ' },
+      { value: prediction.days, label: 'ДНЕЙ' },
+      { value: prediction.hours, label: 'ЧАСОВ' },
+      { value: prediction.minutes, label: 'МИНУТ' },
+      { value: prediction.seconds, label: 'СЕКУНД' },
+    ];
+
+    let yPos = 420;
+    timeData.forEach((item, index) => {
+      if (index % 2 === 0 && index > 0) yPos += 180;
+      const xPos = index % 2 === 0 ? 350 : 850;
+
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'bold 100px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.value.toString(), xPos, yPos);
+
+      ctx.fillStyle = '#666666';
+      ctx.font = '32px Crimson Text, serif';
+      ctx.fillText(item.label, xPos, yPos + 50);
+    });
+
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'italic 32px Crimson Text, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('До твоей встречи с вечностью...', canvas.width / 2, 980);
+
+    ctx.fillStyle = '#666666';
+    ctx.font = '24px Crimson Text, serif';
+    ctx.fillText(prediction.date, canvas.width / 2, 1050);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `memento-mori-${prediction.id}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
   const generatePrediction = () => {
     setIsStreaming(true);
     setCurrentPrediction(null);
@@ -197,6 +286,14 @@ const Index = () => {
                       <p className="mt-4 text-sm italic text-primary">
                         До твоей встречи с вечностью...
                       </p>
+                      <Button
+                        onClick={() => downloadPredictionImage(currentPrediction)}
+                        variant="outline"
+                        className="w-full mt-4 border-primary/50 hover:bg-primary/10"
+                      >
+                        <Icon name="Download" className="w-4 h-4 mr-2" />
+                        Скачать предсказание
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -226,7 +323,7 @@ const Index = () => {
                       >
                         <div className="flex items-start gap-3">
                           <Icon name="Flame" className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 flex-grow">
                             <p className="text-xs text-muted-foreground mb-2">
                               {pred.date}
                             </p>
@@ -257,6 +354,14 @@ const Index = () => {
                               </div>
                             </div>
                           </div>
+                          <Button
+                            onClick={() => downloadPredictionImage(pred)}
+                            variant="ghost"
+                            size="icon"
+                            className="flex-shrink-0 hover:bg-primary/10"
+                          >
+                            <Icon name="Download" className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
