@@ -101,6 +101,11 @@ export default {
 					'0%, 100%': { transform: 'translateX(0)' },
 					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-10px)' },
 					'20%, 40%, 60%, 80%': { transform: 'translateX(10px)' }
+				},
+				'flash': {
+					'0%': { opacity: '0' },
+					'50%': { opacity: '1' },
+					'100%': { opacity: '0' }
 				}
 			},
 			animation: {
@@ -109,7 +114,8 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 				'number-stream': 'number-stream 0.3s linear',
-				'shake': 'shake 0.5s ease-in-out'
+				'shake': 'shake 0.5s ease-in-out',
+				'flash': 'flash 0.3s ease-out'
 			}
 		}
 	},

@@ -19,6 +19,7 @@ const Index = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(null);
   const [isShaking, setIsShaking] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -74,6 +75,11 @@ const Index = () => {
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 500);
     }, 1500);
+    
+    setTimeout(() => {
+      setIsFlashing(true);
+      setTimeout(() => setIsFlashing(false), 300);
+    }, 2000);
 
     setTimeout(() => {
       const prediction: Prediction = {
@@ -96,6 +102,9 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen bg-[#0a0a0a] text-foreground relative overflow-hidden ${isShaking ? 'animate-shake' : ''}`}>
+      {isFlashing && (
+        <div className="fixed inset-0 bg-primary/40 z-50 animate-flash pointer-events-none" />
+      )}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDEzOSwgMCwgMCwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20"></div>
 
       <div className="relative z-10">
