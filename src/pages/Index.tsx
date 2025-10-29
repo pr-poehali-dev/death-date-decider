@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -18,10 +18,56 @@ const Index = () => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
+  const playSound = (frequency: number, duration: number, type: OscillatorType = 'sine') => {
+    if (!audioContextRef.current) return;
+    
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+    
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + duration);
+  };
+
+  const playDramaticSequence = () => {
+    playSound(65.41, 0.3, 'sawtooth');
+    setTimeout(() => playSound(73.42, 0.3, 'sawtooth'), 200);
+    setTimeout(() => playSound(82.41, 0.3, 'sawtooth'), 400);
+    setTimeout(() => playSound(98, 0.5, 'sawtooth'), 600);
+  };
+
+  const playRevealSound = () => {
+    playSound(196, 0.1, 'triangle');
+    setTimeout(() => playSound(220, 0.1, 'triangle'), 100);
+    setTimeout(() => playSound(246.94, 0.1, 'triangle'), 200);
+    setTimeout(() => playSound(293.66, 0.8, 'sine'), 300);
+  };
 
   const generatePrediction = () => {
     setIsStreaming(true);
     setCurrentPrediction(null);
+    
+    playDramaticSequence();
 
     setTimeout(() => {
       const prediction: Prediction = {
@@ -35,6 +81,7 @@ const Index = () => {
         seconds: Math.floor(Math.random() * 60),
       };
 
+      playRevealSound();
       setCurrentPrediction(prediction);
       setPredictions(prev => [prediction, ...prev]);
       setIsStreaming(false);
