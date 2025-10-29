@@ -12,6 +12,7 @@ interface Prediction {
   hours: number;
   minutes: number;
   seconds: number;
+  timestamp: number;
 }
 
 const Index = () => {
@@ -20,6 +21,7 @@ const Index = () => {
   const [currentPrediction, setCurrentPrediction] = useState<Prediction | null>(null);
   const [isShaking, setIsShaking] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [countdown, setCountdown] = useState<{years: number, months: number, days: number, hours: number, minutes: number, seconds: number} | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -30,6 +32,33 @@ const Index = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!currentPrediction) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const remaining = currentPrediction.timestamp - now;
+
+      if (remaining <= 0) {
+        setCountdown({ years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
+        clearInterval(interval);
+        return;
+      }
+
+      const totalSeconds = Math.floor(remaining / 1000);
+      const years = Math.floor(totalSeconds / (365 * 24 * 60 * 60));
+      const months = Math.floor((totalSeconds % (365 * 24 * 60 * 60)) / (30 * 24 * 60 * 60));
+      const days = Math.floor((totalSeconds % (30 * 24 * 60 * 60)) / (24 * 60 * 60));
+      const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+      const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+      const seconds = totalSeconds % 60;
+
+      setCountdown({ years, months, days, hours, minutes, seconds });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentPrediction]);
 
   const playSound = (frequency: number, duration: number, type: OscillatorType = 'sine') => {
     if (!audioContextRef.current) return;
@@ -171,15 +200,26 @@ const Index = () => {
     }, 2000);
 
     setTimeout(() => {
+      const totalSeconds = Math.floor(Math.random() * 60 * 365 * 24 * 60 * 60) + 365 * 24 * 60 * 60;
+      const endTime = Date.now() + totalSeconds * 1000;
+      
+      const years = Math.floor(totalSeconds / (365 * 24 * 60 * 60));
+      const months = Math.floor((totalSeconds % (365 * 24 * 60 * 60)) / (30 * 24 * 60 * 60));
+      const days = Math.floor((totalSeconds % (30 * 24 * 60 * 60)) / (24 * 60 * 60));
+      const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+      const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+      const seconds = totalSeconds % 60;
+
       const prediction: Prediction = {
         id: Date.now().toString(),
         date: new Date().toLocaleString('ru-RU'),
-        years: Math.floor(Math.random() * 60),
-        months: Math.floor(Math.random() * 12),
-        days: Math.floor(Math.random() * 30),
-        hours: Math.floor(Math.random() * 24),
-        minutes: Math.floor(Math.random() * 60),
-        seconds: Math.floor(Math.random() * 60),
+        years,
+        months,
+        days,
+        hours,
+        minutes,
+        seconds,
+        timestamp: endTime,
       };
 
       playRevealSound();
@@ -240,50 +280,55 @@ const Index = () => {
                     )}
                   </Button>
 
-                  {currentPrediction && (
+                  {currentPrediction && countdown && (
                     <div className="mt-8 p-6 bg-secondary/50 border-2 border-primary rounded-lg animate-fade-in">
                       <p className="text-sm text-muted-foreground mb-4">
                         Предсказано: {currentPrediction.date}
                       </p>
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.years}
+                      <div className="mb-6">
+                        <p className="text-xs text-muted-foreground mb-2 text-center">
+                          ⏳ Обратный отсчёт до встречи с вечностью
+                        </p>
+                        <div className="grid grid-cols-3 gap-3 text-center p-4 bg-black/30 rounded border border-primary/20">
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.years}
+                            </div>
+                            <div className="text-xs text-muted-foreground">ЛЕТ</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">ЛЕТ</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.months}
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.months}
+                            </div>
+                            <div className="text-xs text-muted-foreground">МЕС</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">МЕСЯЦЕВ</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.days}
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.days}
+                            </div>
+                            <div className="text-xs text-muted-foreground">ДНЕЙ</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">ДНЕЙ</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.hours}
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.hours}
+                            </div>
+                            <div className="text-xs text-muted-foreground">ЧАС</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">ЧАСОВ</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.minutes}
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.minutes}
+                            </div>
+                            <div className="text-xs text-muted-foreground">МИН</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">МИНУТ</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-4xl font-bold text-primary">
-                            {currentPrediction.seconds}
+                          <div className="space-y-1">
+                            <div className="text-3xl font-bold text-primary tabular-nums animate-pulse">
+                              {countdown.seconds}
+                            </div>
+                            <div className="text-xs text-muted-foreground">СЕК</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">СЕКУНД</div>
                         </div>
                       </div>
-                      <p className="mt-4 text-sm italic text-primary">
+                      <p className="text-sm italic text-primary text-center">
                         До твоей встречи с вечностью...
                       </p>
                       <Button
